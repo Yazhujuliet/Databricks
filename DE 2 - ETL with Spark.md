@@ -1,4 +1,4 @@
-# DE 2 - ETL With Spark
+# ETL With Spark
 
 ## 1. Query File Directly
 <details>
