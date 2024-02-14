@@ -67,7 +67,7 @@ DESCRIBE DETAIL managed_table;
 
 ### Drop Table - data deleted
 - The table's directory and its log and data files are deleted. But the schema (database) directory remains.
-```
+```sql
 DROP TABLE managed_table;
 ```
 
@@ -90,11 +90,11 @@ SELECT * FROM external_table;
 ```
 
 ### Drop the External Table - data retain
-```
+```sql
 DROP TABLE external_table;
 ```
 - The table definition no longer exists in the metastore, but the underlying data remain intact as **Parquet** file.
-```
+```python
 %python 
 tbl_path = f"{DA.paths.working_dir}/external_table"
 files = dbutils.fs.ls(tbl_path)
@@ -102,7 +102,7 @@ display(files)
 ```
 
 ### Drop Schema
-```
+```sql
 DROP SCHEMA ${da.schema_name}_default_location CASCADE;
 ```
 </details>
