@@ -101,6 +101,14 @@ files = dbutils.fs.ls(tbl_path)
 display(files)
 ```
 
+
+## 3. Set Up Delta Tables
+
+<details>
+
+### 
+</details>
+
 ### Drop Schema
 ```sql
 DROP SCHEMA ${da.schema_name}_default_location CASCADE;
