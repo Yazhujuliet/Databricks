@@ -28,6 +28,8 @@
 - Reduce strain on production systems
 - Optimized query performance for business-critical data
 
+## 2. Delta Live Tables
+- Raw data -> Bronze -> Silver -> Gold -> Streaming analytics & AI & Reporting
 
 
 </details>
