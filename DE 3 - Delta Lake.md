@@ -178,7 +178,7 @@ ALTER TABLE purchase_dates ADD CONSTRAINT valid_date CHECK (date > '2020-01-01')
 - `CREATE TABLE`:
   - `COMMENT` added to allow for easier discovery of table contents
   - `LOCATION` specified, which will result in an external (rather than managed) table
-  - `PARTITIONED BT` a date column; this means that the data from each data will exist within its own directory in the target storage location
+  - `PARTITIONED BY` a date column; this means that the data from each data will exist within its own directory in the target storage location
 - Most Delta Lake tables will **NOT** benefit from partitioning -> separate data files, result in a small files problem and prevent file compaction and efficient data skipping.
 ```sql
 CREATE OR REPLACE TABLE users_pii
