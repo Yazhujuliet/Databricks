@@ -101,16 +101,25 @@ files = dbutils.fs.ls(tbl_path)
 display(files)
 ```
 
+### Drop Schema
+```sql
+DROP SCHEMA ${da.schema_name}_default_location CASCADE;
+```
+</details>
+
 
 ## 3. Set Up Delta Tables
 
 <details>
 
-### 
-</details>
+### Create Table As Select (CTAS)
 
-### Drop Schema
 ```sql
-DROP SCHEMA ${da.schema_name}_default_location CASCADE;
+CREATE OR REPLACE TABLE sales AS
+SELECT * FROM parquet.`${DA.paths.datasets}/ecommerce/raw/sales-historical`;
+
+DESCRIBE EXTENDED sales;
 ```
+
+
 </details>
