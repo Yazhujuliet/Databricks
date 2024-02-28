@@ -282,7 +282,7 @@ FILEFORMAT = PARQUET
 ```
 </details>
 
-## 5.Versioning, Optimization, Vacuuming in Delta Lake
+## 5. Versioning, Optimization, Vacuuming in Delta Lake
 
 <details>
 
