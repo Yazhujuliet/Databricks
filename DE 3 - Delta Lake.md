@@ -208,7 +208,7 @@ DEEP CLONE purchases
 
 <details>
 
-### Complete Overwrites
+### Complete Overwrites - INSERT OVERWRITE
 - Use overwrites to atomically replace all of the data in a table.
 - Overwrite instead of delete or recreate:
   - Much faster because it doesn’t need to list the directory recursively or delete any files
@@ -231,12 +231,41 @@ INSERT OVERWRITE sales
 SELECT * FROM parquet.`${da.paths.datasets}/ecommerce/raw/sales-historical/`
 ```
 
-### Append Rows
+### Append Rows - INSERT INTO
 - `INSERT INTO` to atomically append new rows to an existing Delta table.
 - This allows for incremental updates to existing tables, which is much more efficient than overwriting each time.
 - Does **NOT** prevent inserting the same records multiple times -> re-executing will results in duplicate records.
 ```sql
 INSERT INTO sales
 SELECT * FROM parquet.`${da.paths.datasets}/ecommerce/raw/sales-30m`
+```
+
+### Merge Updates - MERGE
+- Use the `MERGE` operation to update historic users data with **updated** emails and new users.
+- Benefits of `MERGE`:
+  - updates, inserts, and deletes are completed as a single transaction
+  - multiple conditionals can be added in addition to matching fields
+  - provides extensive options for implementing custom logic
+- Below query update records if the current row has a NULL email and the new row does not. All unmatched records from the new batch will be inserted.
+> MERGE INTO target a \
+USING source b\
+ON {merge_condition}\
+WHEN MATCHED THEN {matched_action}\
+WHEN NOT MATCHED THEN {not_matched_action}
+```sql
+-- Creat a view for the Updated Records
+
+CREATE OR REPLACE TEMP VIEW users_update AS 
+SELECT *, current_timestamp() AS updated 
+FROM parquet.`${da.paths.datasets}/ecommerce/raw/users-30m`
+
+-- For any row that is not matching with the Updated records, insert the updated values and delete the old values
+
+MERGE INTO users a
+USING users_update b
+ON a.user_id = b.user_id
+WHEN MATCHED AND a.email IS NULL AND b.email IS NOT NULL THEN
+  UPDATE SET email = b.email, updated = b.updated
+WHEN NOT MATCHED THEN INSERT *
 ```
 </details>
