@@ -268,4 +268,16 @@ WHEN MATCHED AND a.email IS NULL AND b.email IS NOT NULL THEN
   UPDATE SET email = b.email, updated = b.updated
 WHEN NOT MATCHED THEN INSERT *
 ```
+
+### Incremental Load - COPY INTO
+- `COPY INTO` incrementally ingest data from external systems.
+- Expectations:
+  - Data schema should be consistent.
+  - Duplicate records should try to be excluded or handled downstream.
+- Over time picking up new files in the source automatically.
+```sql
+COPY INTO sales
+FROM "${da.paths.datasets}/ecommerce/raw/sales-30m"
+FILEFORMAT = PARQUET
+```
 </details>
