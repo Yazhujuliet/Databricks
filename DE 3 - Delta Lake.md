@@ -281,3 +281,113 @@ FROM "${da.paths.datasets}/ecommerce/raw/sales-30m"
 FILEFORMAT = PARQUET
 ```
 </details>
+
+## Versioning, Optimization, Vacuuming in Delta Lake
+
+<details>
+
+### Create a Delta Table with History
+```sql
+CREATE TABLE students
+  (id INT, name STRING, value DOUBLE);
+  
+INSERT INTO students VALUES (1, "Yve", 1.0);
+INSERT INTO students VALUES (2, "Omar", 2.5);
+INSERT INTO students VALUES (3, "Elia", 3.3);
+
+INSERT INTO students
+VALUES 
+  (4, "Ted", 4.7),
+  (5, "Tiffany", 5.5),
+  (6, "Vini", 6.3);
+  
+UPDATE students 
+SET value = value + 1
+WHERE name LIKE "T%";
+
+DELETE FROM students 
+WHERE value > 6;
+
+CREATE OR REPLACE TEMP VIEW updates(id, name, value, type) AS VALUES
+  (2, "Omar", 15.2, "update"),
+  (3, "", null, "delete"),
+  (7, "Blue", 7.7, "insert"),
+  (11, "Diya", 8.8, "update");
+  
+MERGE INTO students b
+USING updates u
+ON b.id=u.id
+WHEN MATCHED AND u.type = "update"
+  THEN UPDATE SET *
+WHEN MATCHED AND u.type = "delete"
+  THEN DELETE
+WHEN NOT MATCHED AND u.type = "insert"
+  THEN INSERT *;
+```
+
+### Examine Table Details
+```sql
+DESCRIBE EXTENDED students;
+DESCRIBE DETAIL students;
+```
+
+### Explore Delta Lake Files - Delta Log
+- **Records** in Delta Lake tables are stored as data in **Parquet** files.
+- **Transactions** to Delta Lake tables are recorded in the `_delta_log`.
+- When checking `_delta_log`, each transaction results in a new JSON file.
+```python
+%python
+display(dbutils.fs.ls(f"{DA.paths.user_db}/students"))
+```
+- To check the transaction details.
+```python
+display(dbutils.fs.ls(f"{DA.paths.user_db}/students/_delta_log"))
+```
+- To check what is performed in one particular transaction log `00000000000000000007.json`.
+```python
+%python
+display(spark.sql(f"SELECT * FROM json.`{DA.paths.user_db}/students/_delta_log/00000000000000000007.json`"))
+```
+
+### Compacting Small Files and Indexing - OPTIMIZE
+- Small files can be combined toward an optimal size using `OPTIMIZE`.
+- `OPTIMIZE` will replace existing data files by combining records and rewriting the results.
+- Specify the Z-order `ZORDER` for indexing will speed up the retrieval.
+```sql
+OPTIMIZE students
+ZORDER BY id
+```
+
+### Versioning Time Travel - HISTORY
+- Review table history
+```sql
+DESCRIBE HISTORY students
+```
+- Query the previous version of the table, **NOT** recreating the previous table by undoing transactions.
+```sql
+SELECT * 
+FROM students VERSION AS OF 3
+```
+
+### Restore Previous Version
+```sql
+RESTORE TABLE students TO VERSION AS OF 8 
+```
+
+### Clean Up Stale Log files
+- Databricks auto cleans stale log files (>30 days by default)
+- If manually clean the log, use `VACUUM` operation.
+- By default, `VACUUM` prevent you from deleting files less than 7 days.
+- `RETAIN 0 HOURS` to keep only the current version.
+- Use the `DRY RUN` version of vacuum to print out all records to be deleted
+```sql
+SET spark.databricks.delta.retentionDurationCheck.enabled = false;
+SET spark.databricks.delta.vacuum.logging.enabled = true;
+
+-- print out records to be deleted
+VACUUM students RETAIN 0 HOURS DRY RUN;
+
+-- delete the files
+VACUUM students RETAIN 0 HOURS
+```
+</details>
