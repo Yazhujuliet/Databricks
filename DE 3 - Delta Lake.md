@@ -282,7 +282,7 @@ FILEFORMAT = PARQUET
 ```
 </details>
 
-## Versioning, Optimization, Vacuuming in Delta Lake
+## 5.Versioning, Optimization, Vacuuming in Delta Lake
 
 <details>
 
@@ -358,7 +358,7 @@ OPTIMIZE students
 ZORDER BY id
 ```
 
-### Versioning Time Travel - HISTORY
+### Versioning Time Travel - HISTORY, VERSION AS
 - Review table history
 ```sql
 DESCRIBE HISTORY students
@@ -369,12 +369,12 @@ SELECT *
 FROM students VERSION AS OF 3
 ```
 
-### Restore Previous Version
+### Restore Previous Version - RESTORE TABLE
 ```sql
 RESTORE TABLE students TO VERSION AS OF 8 
 ```
 
-### Clean Up Stale Log files
+### Clean Up Stale Log files - VACUUM
 - Databricks auto cleans stale log files (>30 days by default)
 - If manually clean the log, use `VACUUM` operation.
 - By default, `VACUUM` prevent you from deleting files less than 7 days.
