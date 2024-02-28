@@ -216,11 +216,11 @@ DEEP CLONE purchases
   - Atomic operation. Concurrent queries can still read the table while you are deleting the table
   - Due to ACID transaction guarantees, if overwriting the table fails, the table will be in its previous state.
 - `CREATE OR REPLACE TABLE` (CRAS) statements fully replace the contents of a table each time they execute. -> **Redefine** the contents.
-- 
 ```sql
 CREATE OR REPLACE TABLE events AS
 SELECT * FROM parquet.`${da.paths.datasets}/ecommerce/raw/events-historical`
 ```
+
 - `INSERT OVERWRITE`, similar to CRAS, but
   - Can only overwrite an existing table, **NOT** create a new one like our CRAS statement
   - Can overwrite only with new records that match the current table **schema** -- and thus can be a "safer" technique for overwriting an existing table without disrupting downstream consumers
@@ -231,4 +231,12 @@ INSERT OVERWRITE sales
 SELECT * FROM parquet.`${da.paths.datasets}/ecommerce/raw/sales-historical/`
 ```
 
+### Append Rows
+- `INSERT INTO` to atomically append new rows to an existing Delta table.
+- This allows for incremental updates to existing tables, which is much more efficient than overwriting each time.
+- Does **NOT** prevent inserting the same records multiple times -> re-executing will results in duplicate records.
+```sql
+INSERT INTO sales
+SELECT * FROM parquet.`${da.paths.datasets}/ecommerce/raw/sales-30m`
+```
 </details>
