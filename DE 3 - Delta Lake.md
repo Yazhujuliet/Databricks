@@ -203,3 +203,32 @@ DEEP CLONE purchases
 - `SHALLOW CLONE` copies the Delta transaction logs, data doesn't move. Good for creating a copy of a table quickly to test out applying changes without the risk of modifying the current table.
 
 </details>
+
+## 4. Load Data into Delta Lake
+
+<details>
+
+### Complete Overwrites
+- Use overwrites to atomically replace all of the data in a table.
+- Overwrite instead of delete or recreate:
+  - Much faster because it doesn’t need to list the directory recursively or delete any files
+  - Old version of the table still exists; can easily retrieve the old data using Time Travel
+  - Atomic operation. Concurrent queries can still read the table while you are deleting the table
+  - Due to ACID transaction guarantees, if overwriting the table fails, the table will be in its previous state.
+- `CREATE OR REPLACE TABLE` (CRAS) statements fully replace the contents of a table each time they execute. -> **Redefine** the contents.
+- 
+```sql
+CREATE OR REPLACE TABLE events AS
+SELECT * FROM parquet.`${da.paths.datasets}/ecommerce/raw/events-historical`
+```
+- `INSERT OVERWRITE`, similar to CRAS, but
+  - Can only overwrite an existing table, **NOT** create a new one like our CRAS statement
+  - Can overwrite only with new records that match the current table **schema** -- and thus can be a "safer" technique for overwriting an existing table without disrupting downstream consumers
+  - Can overwrite individual partitions
+  - Will **fail** if we try to change the schema.
+```sql
+INSERT OVERWRITE sales
+SELECT * FROM parquet.`${da.paths.datasets}/ecommerce/raw/sales-historical/`
+```
+
+</details>
